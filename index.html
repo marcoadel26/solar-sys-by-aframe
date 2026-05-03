@@ -1,0 +1,334 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <style>
+
+      /* ===== بطاقة معلومات الكوكب — بتظهر في أسفل الشاشة لما تحدق في كوكب ===== */
+      #info-box {
+        display: none;
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        padding: 18px 32px;
+        border-radius: 16px;
+        text-align: center;
+        font-family: Tahoma, sans-serif;
+        backdrop-filter: blur(14px);
+        z-index: 999;
+        min-width: 300px;
+        max-width: 420px;
+        pointer-events: none;
+      }
+      /* اسم الكوكب باللون الذهبي */
+      #info-name {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #ffe999;
+      }
+      /* نص المعلومات */
+      #info-text {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.78);
+        line-height: 1.8;
+      }
+
+      /* ===== دايرة التحديق — بتدور لما تحدق في كوكب وتختفي لما المعلومات تظهر ===== */
+      #gaze-ring {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.2);
+        border-top-color: #ffe999; /* الجزء الذهبي الدوار */
+        animation: spin 2s linear infinite;
+        z-index: 998;
+        pointer-events: none;
+      }
+      /* حركة الدوران */
+      @keyframes spin {
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+
+      /* ===== شاشة البداية — بتظهر أول ما يفتح الملف ===== */
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000011;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: Tahoma, sans-serif;
+      }
+      #splash h1 {
+        font-size: 26px;
+        color: #ffe999;
+        margin-bottom: 16px;
+        letter-spacing: 2px;
+      }
+      #splash p {
+        font-size: 14px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 8px;
+        line-height: 1.9;
+      }
+      #splash button {
+        margin-top: 28px;
+        background: transparent;
+        color: #ffe999;
+        border: 1px solid #ffe999;
+        padding: 12px 36px;
+        border-radius: 30px;
+        font-size: 15px;
+        cursor: pointer;
+        font-family: Tahoma, sans-serif;
+        letter-spacing: 1px;
+        transition: background 0.3s;
+      }
+      #splash button:hover { background: rgba(255,233,153,0.1); }
+
+    </style>
+  </head>
+  <body>
+
+    <!-- ===== شاشة البداية ===== -->
+    <div id="splash">
+      <h1>المجموعة الشمسية</h1>
+      <p>اسحب الماوس او حرك جهازك للنظر حواليك</p>
+      <p>حدق في اي كوكب لثانيتين لتعرف معلوماته</p>
+      <!-- زرار البداية — بيقفل الشاشة ويفعّل الكيرسور -->
+      <button onclick="closeSplash()">ابدا</button>
+    </div>
+
+    <!-- ===== بطاقة معلومات الكوكب ===== -->
+    <div id="info-box">
+      <div id="info-name"></div>
+      <div id="info-text"></div>
+    </div>
+
+    <!-- ===== دايرة التحديق ===== -->
+    <div id="gaze-ring"></div>
+
+    <!-- ===== المشهد الرئيسي للواقع الافتراضي ===== -->
+    <a-scene>
+
+      <!-- ===== تحميل الصور مسبقاً عشان ما يصيرش تأخير ===== -->
+      <a-assets>
+        <img id="tex-stars"   src="images/8k_stars.jpg">
+        <img id="tex-sun"     src="images/sun.jpg">
+        <img id="tex-mercury" src="images/mercurymap.jpg">
+        <img id="tex-venus"   src="images/venusmap.jpg">
+        <img id="tex-earth"   src="images/earthmap1k.jpg">
+        <img id="tex-mars"    src="images/mars_1k_color.jpg">
+        <img id="tex-jupiter" src="images/jupiter2_1k.jpg">
+        <img id="tex-saturn"  src="images/saturnmap.jpg">
+        <img id="tex-rings"   src="images/saturn_s_ring_asset_true_color_by_askanery_dg6ymtr-pre.png">
+        <img id="tex-uranus"  src="images/uranusmap.jpg">
+        <img id="tex-neptune" src="images/neptunemap.jpg">
+      </a-assets>
+
+      <!-- ===== السماء — صورة 360 درجة للنجوم ===== -->
+      <a-sky src="#tex-stars"></a-sky>
+
+      <!-- ===== الشمس — في المنتصف، أكبر جسم في المشهد ===== -->
+      <!-- data-name و data-info: المعلومات اللي بتظهر في البطاقة لما تحدق -->
+      <!-- animation: حركة hover بسيطة لأعلى ولأسفل -->
+      <a-sphere
+        class="planet"
+        src="#tex-sun"
+        radius="2"
+        data-name="الشمس"
+        data-info="نجم في مركز مجموعتنا الشمسية. قطرها 1.4 مليون كم اكبر من الارض بـ109 مرة. درجة حرارة سطحها 5500 درجة مئوية."
+        animation="property: position; from: -0.2 1.8 -10; to: 0.2 2.2 -10;
+                   loop: true; dir: alternate; dur: 4000; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- =====  عطارد — أصغر كوكب، ثابت بدون حركةanimation ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-mercury"
+        radius="0.08"
+        data-name="عطارد"
+        data-info="اقرب كوكب للشمس ويبعد عنها 58 مليون كم. يومه اطول من سنته. لا يملك غلافا جويا تقريبا."
+        position="4.9 1.4 -12";>
+      </a-sphere>
+
+      <!-- ===== الزهرة ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-venus"
+        radius="0.18"
+        data-name="الزهرة"
+        data-info="اشد الكواكب حرارة رغم كونه الثاني بعد الشمس. درجة حرارته 465 درجة مئوية بسبب غلافه الجوي الكثيف."
+        animation="property: position; from: 7.7 2.8 -8; to: 7.8 2.9 -7.9;
+                   loop: true; dir: alternate; dur: 2200; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- ===== الارض ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-earth"
+        radius="0.2"
+        data-name="الارض"
+        data-info="ثالث الكواكب واكبرها في المجموعة الداخلية. الكوكب الوحيد المعروف بوجود حياة عليه. يبعد 150 مليون كم عن الشمس."
+        animation="property: position; from: 10.7 0.8 -14; to: 10.9 1 -13.9;
+                   loop: true; dir: alternate; dur: 3000; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- ===== المريخ ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-mars"
+        radius="0.12"
+        data-name="المريخ"
+        data-info="الكوكب الاحمر. به جبل اوليمبوس اعلى بركان في المجموعة الشمسية بارتفاع 22 كم. له قمران صغيران."
+        animation="property: position; from: 13.7 3.3 -9; to: 13.8 3.4 -9;
+                   loop: true; dir: alternate; dur: 2500; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- ===== المشتري — أكبر كوكب ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-jupiter"
+        radius="0.9"
+        data-name="المشتري"
+        data-info="اكبر كواكب المجموعة الشمسية. كتلته اكبر من باقي الكواكب مجتمعة. به العاصفة الحمراء الكبرى منذ 350 سنة."
+        animation="property: position; from: -8.3 1.3 -18; to: -7.9 1.5 -17.9;
+                   loop: true; dir: alternate; dur: 5000; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- ===== زحل — مجمّع في entity واحد عشان الكوكب والحلقات يتحركوا مع بعض ===== -->
+      <a-entity
+        animation="property: position; from: -13.3 2.8 -13; to: -13 3 -12.9;
+                   loop: true; dir: alternate; dur: 4500; easing: easeInOutSine">
+        <!-- الكوكب نفسه -->
+        <a-sphere
+          class="planet"
+          src="#tex-saturn"
+          radius="0.75"
+          data-name="زحل"
+          data-info="مشهور بحلقاته المكونة من جليد وصخور. اخف الكواكب كثافة ويطفو على الماء. له 146 قمرا معروفا.">
+        </a-sphere>
+        <!-- حلقات زحل — صورة PNG شفافة على شكل حلقة مسطحة -->
+        <a-plane
+          width="4" height="4"
+          rotation="-90 0 0"
+          src="#tex-rings"
+          material="side: double; transparent: true; alphaTest: 0.05; opacity: 0.9">
+        </a-plane>
+      </a-entity>
+
+      <!-- ===== اورانوس ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-uranus"
+        radius="0.45"
+        data-name="اورانوس"
+        data-info="يدور على جانبه بزاوية 98 درجة كانه يتدحرج. درجة حرارته -224 درجة مئوية مما يجعله ابرد كوكب في المجموعة."
+        animation="property: position; from: -6.3 3.8 -8; to: -6.1 4 -7.9;
+                   loop: true; dir: alternate; dur: 3800; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- ===== نبتون — أبعد كوكب ===== -->
+      <a-sphere
+        class="planet"
+        src="#tex-neptune"
+        radius="0.42"
+        data-name="نبتون"
+        data-info="ابعد كواكب المجموعة الشمسية. به عواصف تصل سرعتها 2100 كم/ساعة. يستغرق دورانه حول الشمس 165 سنة ارضية."
+        animation="property: position; from: 15.7 1.8 -20; to: 16 2 -19.9;
+                   loop: true; dir: alternate; dur: 4200; easing: easeInOutSine">
+      </a-sphere>
+
+      <!-- ===== الكاميرا — موضع المستخدم في المشهد ===== -->
+      <a-camera id="cam" position="0 1.6 0" wasd-controls look-controls>
+        <!-- الكيرسور — شكل حلقة ذهبية في المنتصف
+             fuse: بيفعّل التحديق
+             fuse-timeout: الوقت بالمللي ثانية قبل ما يشتغل (2 ثانية)
+             raycaster: معطل في البداية ويتفعّل بعد إغلاق شاشة البداية -->
+        <a-cursor
+          id="cursor"
+          fuse="true"
+          fuse-timeout="2000"
+          color="#ffe999"
+          geometry="primitive: ring; radiusInner: 0.012; radiusOuter: 0.018"
+          material="color: #ffe999; shader: flat; opacity: 0.8"
+          raycaster="objects: .planet; enabled: false">
+        </a-cursor>
+      </a-camera>
+
+    </a-scene>
+
+    <script>
+
+      // ===== بتقفل شاشة البداية وتفعّل الكيرسور في نفس الوقت =====
+      // السبب: عشان الكيرسور ما يشتغلش وشاشة البداية لسه شغالة
+      function closeSplash() {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('cursor')
+          .setAttribute('raycaster', 'objects: .planet; enabled: true');
+      }
+
+      // ===== بننتظر لحد ما المشهد يتحمل بالكامل قبل ما نضيف الأحداث =====
+      document.querySelector('a-scene').addEventListener('loaded', function () {
+
+        const cursor   = document.getElementById('cursor');
+        const infoBox  = document.getElementById('info-box');
+        const infoName = document.getElementById('info-name');
+        const infoText = document.getElementById('info-text');
+        const gazeRing = document.getElementById('gaze-ring');
+
+        // متغير عشان نقدر نلغي العداد لو المستخدم بص بعيد قبل الثانيتين
+        let gazeTimer = null;
+
+        // ===== لما الكيرسور يبدأ يحدق في كوكب =====
+        cursor.addEventListener('fusing', function (e) {
+          const target = e.detail.intersectedEl;
+          // تأكد إن اللي بتحدق فيه كوكب فعلاً
+          if (!target || !target.classList.contains('planet')) return;
+
+          // اعرض دايرة التحديق الدوارة
+          gazeRing.style.display = 'block';
+
+          // بعد ثانيتين اعرض المعلومات
+          gazeTimer = setTimeout(function () {
+            gazeRing.style.display = 'none';
+            infoName.textContent = target.dataset.name || '';
+            infoText.textContent = target.dataset.info || '';
+            infoBox.style.display = 'block';
+          }, 2000);
+        });
+
+        // ===== لما تبص بعيد عن الكوكب — اخفي كل حاجة وامسح العداد =====
+        cursor.addEventListener('mouseleave', function (e) {
+          clearTimeout(gazeTimer);
+          infoBox.style.display  = 'none';
+          gazeRing.style.display = 'none';
+        });
+
+        // ===== لو المستخدم ضغط كليك بدل التحديق — اعرض المعلومات فوراً =====
+        cursor.addEventListener('click', function (e) {
+          const target = e.detail.intersectedEl;
+          if (!target || !target.classList.contains('planet')) return;
+          infoName.textContent = target.dataset.name || '';
+          infoText.textContent = target.dataset.info || '';
+          infoBox.style.display = 'block';
+        });
+
+      });
+    </script>
+
+  </body>
+</html>
