@@ -326,16 +326,10 @@
             if (moveDir.x !== 0 || moveDir.y !== 0) {
               const pos      = cam.getAttribute('position');
               const rotation = cam.getAttribute('rotation');
-              const yaw      = THREE.MathUtils.degToRad(rotation.y);
-
-              // للأمام/للخلف — محور Z بناءً على اتجاه الكاميرا
-              pos.x -= Math.sin(yaw) * moveDir.y * speed;
-              pos.z -= Math.cos(yaw) * moveDir.y * speed;
-
-              // يمين/شمال — محور X بناءً على اتجاه الكاميرا
-              pos.x += Math.cos(yaw) * moveDir.x * speed;
-              pos.z -= Math.sin(yaw) * moveDir.x * speed;
-
+              // تحويل الاتجاه بناءً على اتجاه الكاميرا
+              const yaw = THREE.MathUtils.degToRad(rotation.y);
+              pos.x += (Math.cos(yaw) * moveDir.x + Math.sin(yaw) * moveDir.y) * speed;
+              pos.z += (Math.sin(yaw) * moveDir.x - Math.cos(yaw) * moveDir.y) * speed;
               cam.setAttribute('position', pos);
             }
             requestAnimationFrame(moveLoop);
@@ -366,15 +360,6 @@
           clearTimeout(gazeTimer);
           infoBox.style.display  = 'none';
           gazeRing.style.display = 'none';
-        });
-
-        // ===== لو المستخدم ضغط كليك بدل التحديق — اعرض المعلومات فوراً =====
-        cursor.addEventListener('click', function (e) {
-          const target = e.detail.intersectedEl;
-          if (!target || !target.classList.contains('planet')) return;
-          infoName.textContent = target.dataset.name || '';
-          infoText.textContent = target.dataset.info || '';
-          infoBox.style.display = 'block';
         });
 
       });
