@@ -136,17 +136,17 @@
     <a-scene>
 
       <a-assets>
-        <img id="tex-stars"   src="images/2k_stars.jpg">
-        <img id="tex-sun"     src="images/sun.jpg">
-        <img id="tex-mercury" src="images/mercurymap.jpg">
-        <img id="tex-venus"   src="images/venusmap.jpg">
-        <img id="tex-earth"   src="images/earthmap1k.jpg">
-        <img id="tex-mars"    src="images/mars_1k_color.jpg">
-        <img id="tex-jupiter" src="images/jupiter2_1k.jpg">
-        <img id="tex-saturn"  src="images/saturnmap.jpg">
-        <img id="tex-rings"   src="images/saturn_s_ring_asset_true_color_by_askanery_dg6ymtr-pre.png">
-        <img id="tex-uranus"  src="images/uranusmap.jpg">
-        <img id="tex-neptune" src="images/neptunemap.jpg">
+        <img id="tex-stars"   src="images/8k_stars.jpg">
+        <img id="tex-sun"     src="images/8k_sun.jpg">
+        <img id="tex-mercury" src="images/8k_mercury.jpg">
+        <img id="tex-venus"   src="images/4k_venus_atmosphere.jpg">
+        <img id="tex-earth"   src="images/8k_earth_daymap.jpg">
+        <img id="tex-mars"    src="images/8k_mars.jpg">
+        <img id="tex-jupiter" src="images/8k_jupiter.jpg">
+        <img id="tex-saturn"  src="images/8k_saturn.jpg">
+        <img id="tex-rings"   src="images/stock_image___saturn_rings_by_alpha_element_d6ifske.png">
+        <img id="tex-uranus"  src="images/2k_uranus.jpg">
+        <img id="tex-neptune" src="images/2k_neptune.jpg">
       </a-assets>
 
       <a-sky src="#tex-stars"></a-sky>
@@ -330,7 +330,7 @@
               // تحويل الاتجاه بناءً على اتجاه الكاميرا
               const yaw = THREE.MathUtils.degToRad(rotation.y);
               pos.x += (Math.cos(yaw) * moveDir.x + Math.sin(yaw) * moveDir.y) * speed;
-              pos.z += (Math.sin(yaw) * moveDir.x - Math.cos(yaw) * moveDir.y) * speed * -1;
+              pos.z += (Math.sin(yaw) * moveDir.x - Math.cos(yaw) * moveDir.y) * speed;
               cam.setAttribute('position', pos);
             }
             requestAnimationFrame(moveLoop);
