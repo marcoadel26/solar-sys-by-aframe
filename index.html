@@ -2,8 +2,6 @@
   <head>
     <meta charset="UTF-8">
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-    <!-- مكتبة الجويستيك للموبايل -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
     <style>
       #info-box {
         display: none;
@@ -93,21 +91,6 @@
         transition: background 0.3s;
       }
       #splash button:hover { background: rgba(255,233,153,0.1); }
-
-      /* ===== جويستيك الموبايل — بيظهر بس على الموبايل ===== */
-      #joystick-zone {
-        display: none; /* مخفي على الكمبيوتر */
-        position: fixed;
-        bottom: 40px;
-        left: 40px;
-        width: 120px;
-        height: 120px;
-        z-index: 100;
-      }
-      /* اظهار الجويستيك على الموبايل فقط */
-      @media (max-width: 768px) {
-        #joystick-zone { display: block; }
-      }
     </style>
   </head>
   <body>
@@ -120,9 +103,6 @@
       <!-- زرار البداية — بيقفل الشاشة ويفعّل الكيرسور -->
       <button onclick="closeSplash()">ابدا</button>
     </div>
-
-    <!-- ===== منطقة الجويستيك — بتظهر على الموبايل بس ===== -->
-    <div id="joystick-zone"></div>
 
     <!-- Info Panel -->
     <div id="info-box">
@@ -258,7 +238,7 @@
       </a-sphere>
 
       <!-- Camera -->
-      <a-camera id="cam" position="0 1.6 0" wasd-controls="enabled: false" look-controls>
+      <a-camera id="cam" position="0 1.6 0" wasd-controls look-controls>
         <a-cursor
           id="cursor"
           fuse="true"
@@ -292,91 +272,6 @@
         const cam      = document.getElementById('cam');
 
         let gazeTimer = null;
-
-        // ===== حركة الكيبورد — بتتبع اتجاه الكاميرا دايماً =====
-        const keys = {};
-        document.addEventListener('keydown', function (e) { keys[e.code] = true; });
-        document.addEventListener('keyup',   function (e) { keys[e.code] = false; });
-
-        const speed = 0.08;
-        function keyboardLoop() {
-          const pressed = keys['KeyW'] || keys['ArrowUp']    ||
-                          keys['KeyS'] || keys['ArrowDown']  ||
-                          keys['KeyA'] || keys['ArrowLeft']  ||
-                          keys['KeyD'] || keys['ArrowRight'];
-
-          if (pressed) {
-            const pos      = cam.getAttribute('position');
-            const rotation = cam.getAttribute('rotation');
-            const yaw      = THREE.MathUtils.degToRad(rotation.y);
-
-            // للأمام / للخلف
-            if (keys['KeyW'] || keys['ArrowUp']) {
-              pos.x -= Math.sin(yaw) * speed;
-              pos.z -= Math.cos(yaw) * speed;
-            }
-            if (keys['KeyS'] || keys['ArrowDown']) {
-              pos.x += Math.sin(yaw) * speed;
-              pos.z += Math.cos(yaw) * speed;
-            }
-            // يمين / شمال
-            if (keys['KeyD'] || keys['ArrowRight']) {
-              pos.x += Math.cos(yaw) * speed;
-              pos.z -= Math.sin(yaw) * speed;
-            }
-            if (keys['KeyA'] || keys['ArrowLeft']) {
-              pos.x -= Math.cos(yaw) * speed;
-              pos.z += Math.sin(yaw) * speed;
-            }
-            cam.setAttribute('position', pos);
-          }
-          requestAnimationFrame(keyboardLoop);
-        }
-        keyboardLoop();
-
-        // ===== جويستيك الموبايل =====
-        // بنعمل الجويستيك بس لو الشاشة صغيرة (موبايل)
-        if (window.innerWidth <= 768) {
-          const joystick = nipplejs.create({
-            zone: document.getElementById('joystick-zone'),
-            mode: 'static',        // ثابت في مكانه
-            position: { left: '50%', top: '50%' },
-            color: 'rgba(255, 233, 153, 0.6)',
-            size: 100
-          });
-
-          let moveDir = { x: 0, y: 0 }; // اتجاه الحركة الحالي
-
-          // لما تحرك الجويستيك — سجل الاتجاه
-          joystick.on('move', function (e, data) {
-            const angle  = data.angle.radian;   // الزاوية بالراديان
-            const force  = Math.min(data.force, 2) / 2; // القوة من 0 لـ 1
-            moveDir.x = Math.cos(angle) * force;
-            moveDir.y = Math.sin(angle) * force;
-          });
-
-          // لما ترفع اصبعك — وقف الحركة
-          joystick.on('end', function () {
-            moveDir.x = 0;
-            moveDir.y = 0;
-          });
-
-          // حلقة الحركة — بتشتغل كل frame
-          const speed = 0.08;
-          function moveLoop() {
-            if (moveDir.x !== 0 || moveDir.y !== 0) {
-              const pos      = cam.getAttribute('position');
-              const rotation = cam.getAttribute('rotation');
-              // تحويل الاتجاه بناءً على اتجاه الكاميرا
-              const yaw = THREE.MathUtils.degToRad(rotation.y);
-              pos.x += (Math.cos(yaw) * moveDir.x + Math.sin(yaw) * moveDir.y) * speed;
-              pos.z += (Math.sin(yaw) * moveDir.x - Math.cos(yaw) * moveDir.y) * speed;
-              cam.setAttribute('position', pos);
-            }
-            requestAnimationFrame(moveLoop);
-          }
-          moveLoop();
-        }
 
         // ===== لما الكيرسور يبدأ يحدق في كوكب =====
         cursor.addEventListener('fusing', function (e) {
@@ -417,4 +312,3 @@
 
   </body>
 </html>
-
