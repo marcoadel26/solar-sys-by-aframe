@@ -258,7 +258,7 @@
       </a-sphere>
 
       <!-- Camera -->
-      <a-camera id="cam" position="0 1.6 0" wasd-controls look-controls>
+      <a-camera id="cam" position="0 1.6 0" wasd-controls="enabled: false" look-controls>
         <a-cursor
           id="cursor"
           fuse="true"
@@ -292,6 +292,47 @@
         const cam      = document.getElementById('cam');
 
         let gazeTimer = null;
+
+        // ===== حركة الكيبورد — بتتبع اتجاه الكاميرا دايماً =====
+        const keys = {};
+        document.addEventListener('keydown', function (e) { keys[e.code] = true; });
+        document.addEventListener('keyup',   function (e) { keys[e.code] = false; });
+
+        const speed = 0.08;
+        function keyboardLoop() {
+          const pressed = keys['KeyW'] || keys['ArrowUp']    ||
+                          keys['KeyS'] || keys['ArrowDown']  ||
+                          keys['KeyA'] || keys['ArrowLeft']  ||
+                          keys['KeyD'] || keys['ArrowRight'];
+
+          if (pressed) {
+            const pos      = cam.getAttribute('position');
+            const rotation = cam.getAttribute('rotation');
+            const yaw      = THREE.MathUtils.degToRad(rotation.y);
+
+            // للأمام / للخلف
+            if (keys['KeyW'] || keys['ArrowUp']) {
+              pos.x -= Math.sin(yaw) * speed;
+              pos.z -= Math.cos(yaw) * speed;
+            }
+            if (keys['KeyS'] || keys['ArrowDown']) {
+              pos.x += Math.sin(yaw) * speed;
+              pos.z += Math.cos(yaw) * speed;
+            }
+            // يمين / شمال
+            if (keys['KeyD'] || keys['ArrowRight']) {
+              pos.x += Math.cos(yaw) * speed;
+              pos.z -= Math.sin(yaw) * speed;
+            }
+            if (keys['KeyA'] || keys['ArrowLeft']) {
+              pos.x -= Math.cos(yaw) * speed;
+              pos.z += Math.sin(yaw) * speed;
+            }
+            cam.setAttribute('position', pos);
+          }
+          requestAnimationFrame(keyboardLoop);
+        }
+        keyboardLoop();
 
         // ===== جويستيك الموبايل =====
         // بنعمل الجويستيك بس لو الشاشة صغيرة (موبايل)
@@ -362,8 +403,18 @@
           gazeRing.style.display = 'none';
         });
 
+        // ===== لو المستخدم ضغط كليك بدل التحديق — اعرض المعلومات فوراً =====
+        cursor.addEventListener('click', function (e) {
+          const target = e.detail.intersectedEl;
+          if (!target || !target.classList.contains('planet')) return;
+          infoName.textContent = target.dataset.name || '';
+          infoText.textContent = target.dataset.info || '';
+          infoBox.style.display = 'block';
+        });
+
       });
     </script>
 
   </body>
 </html>
+
