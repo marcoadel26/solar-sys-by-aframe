@@ -2,9 +2,9 @@
   <head>
     <meta charset="UTF-8">
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <!-- مكتبة الجويستيك للموبايل -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
     <style>
-
-      /* ===== بطاقة معلومات الكوكب — بتظهر في أسفل الشاشة لما تحدق في كوكب ===== */
       #info-box {
         display: none;
         position: fixed;
@@ -24,21 +24,18 @@
         max-width: 420px;
         pointer-events: none;
       }
-      /* اسم الكوكب باللون الذهبي */
       #info-name {
         font-size: 20px;
         font-weight: bold;
         margin-bottom: 10px;
         color: #ffe999;
       }
-      /* نص المعلومات */
       #info-text {
         font-size: 13px;
         color: rgba(255, 255, 255, 0.78);
         line-height: 1.8;
       }
 
-      /* ===== دايرة التحديق — بتدور لما تحدق في كوكب وتختفي لما المعلومات تظهر ===== */
       #gaze-ring {
         display: none;
         position: fixed;
@@ -49,17 +46,15 @@
         height: 48px;
         border-radius: 50%;
         border: 3px solid rgba(255,255,255,0.2);
-        border-top-color: #ffe999; /* الجزء الذهبي الدوار */
+        border-top-color: #ffe999;
         animation: spin 2s linear infinite;
         z-index: 998;
         pointer-events: none;
       }
-      /* حركة الدوران */
       @keyframes spin {
         to { transform: translate(-50%, -50%) rotate(360deg); }
       }
 
-      /* ===== شاشة البداية — بتظهر أول ما يفتح الملف ===== */
       #splash {
         position: fixed;
         inset: 0;
@@ -99,6 +94,20 @@
       }
       #splash button:hover { background: rgba(255,233,153,0.1); }
 
+      /* ===== جويستيك الموبايل — بيظهر بس على الموبايل ===== */
+      #joystick-zone {
+        display: none; /* مخفي على الكمبيوتر */
+        position: fixed;
+        bottom: 40px;
+        left: 40px;
+        width: 120px;
+        height: 120px;
+        z-index: 100;
+      }
+      /* اظهار الجويستيك على الموبايل فقط */
+      @media (max-width: 768px) {
+        #joystick-zone { display: block; }
+      }
     </style>
   </head>
   <body>
@@ -112,19 +121,20 @@
       <button onclick="closeSplash()">ابدا</button>
     </div>
 
-    <!-- ===== بطاقة معلومات الكوكب ===== -->
+    <!-- ===== منطقة الجويستيك — بتظهر على الموبايل بس ===== -->
+    <div id="joystick-zone"></div>
+
+    <!-- Info Panel -->
     <div id="info-box">
       <div id="info-name"></div>
       <div id="info-text"></div>
     </div>
 
-    <!-- ===== دايرة التحديق ===== -->
+    <!-- Gaze spinner -->
     <div id="gaze-ring"></div>
 
-    <!-- ===== المشهد الرئيسي للواقع الافتراضي ===== -->
     <a-scene>
 
-      <!-- ===== تحميل الصور مسبقاً عشان ما يصيرش تأخير ===== -->
       <a-assets>
         <img id="tex-stars"   src="images/2k_stars.jpg">
         <img id="tex-sun"     src="images/sun.jpg">
@@ -139,12 +149,10 @@
         <img id="tex-neptune" src="images/neptunemap.jpg">
       </a-assets>
 
-      <!-- ===== السماء — صورة 360 درجة للنجوم ===== -->
       <a-sky src="#tex-stars"></a-sky>
 
-      <!-- ===== الشمس — في المنتصف، أكبر جسم في المشهد ===== -->
-      <!-- data-name و data-info: المعلومات اللي بتظهر في البطاقة لما تحدق -->
-      <!-- animation: حركة hover بسيطة لأعلى ولأسفل -->
+
+      <!-- Sun -->
       <a-sphere
         class="planet"
         src="#tex-sun"
@@ -155,7 +163,7 @@
                    loop: true; dir: alternate; dur: 4000; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- =====  عطارد — أصغر كوكب، ثابت بدون حركةanimation ===== -->
+      <!-- Mercury -->
       <a-sphere
         class="planet"
         src="#tex-mercury"
@@ -165,7 +173,7 @@
         position="4.9 1.4 -12";>
       </a-sphere>
 
-      <!-- ===== الزهرة ===== -->
+      <!-- Venus -->
       <a-sphere
         class="planet"
         src="#tex-venus"
@@ -176,7 +184,7 @@
                    loop: true; dir: alternate; dur: 2200; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- ===== الارض ===== -->
+      <!-- Earth -->
       <a-sphere
         class="planet"
         src="#tex-earth"
@@ -187,7 +195,7 @@
                    loop: true; dir: alternate; dur: 3000; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- ===== المريخ ===== -->
+      <!-- Mars -->
       <a-sphere
         class="planet"
         src="#tex-mars"
@@ -198,7 +206,7 @@
                    loop: true; dir: alternate; dur: 2500; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- ===== المشتري — أكبر كوكب ===== -->
+      <!-- Jupiter -->
       <a-sphere
         class="planet"
         src="#tex-jupiter"
@@ -209,11 +217,10 @@
                    loop: true; dir: alternate; dur: 5000; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- ===== زحل — مجمّع في entity واحد عشان الكوكب والحلقات يتحركوا مع بعض ===== -->
+      <!-- Saturn + Rings -->
       <a-entity
         animation="property: position; from: -13.3 2.8 -13; to: -13 3 -12.9;
                    loop: true; dir: alternate; dur: 4500; easing: easeInOutSine">
-        <!-- الكوكب نفسه -->
         <a-sphere
           class="planet"
           src="#tex-saturn"
@@ -221,7 +228,6 @@
           data-name="زحل"
           data-info="مشهور بحلقاته المكونة من جليد وصخور. اخف الكواكب كثافة ويطفو على الماء. له 146 قمرا معروفا.">
         </a-sphere>
-        <!-- حلقات زحل — صورة PNG شفافة على شكل حلقة مسطحة -->
         <a-plane
           width="4" height="4"
           rotation="-90 0 0"
@@ -230,7 +236,7 @@
         </a-plane>
       </a-entity>
 
-      <!-- ===== اورانوس ===== -->
+      <!-- Uranus -->
       <a-sphere
         class="planet"
         src="#tex-uranus"
@@ -241,7 +247,7 @@
                    loop: true; dir: alternate; dur: 3800; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- ===== نبتون — أبعد كوكب ===== -->
+      <!-- Neptune -->
       <a-sphere
         class="planet"
         src="#tex-neptune"
@@ -252,12 +258,8 @@
                    loop: true; dir: alternate; dur: 4200; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- ===== الكاميرا — موضع المستخدم في المشهد ===== -->
+      <!-- Camera -->
       <a-camera id="cam" position="0 1.6 0" wasd-controls look-controls>
-        <!-- الكيرسور — شكل حلقة ذهبية في المنتصف
-             fuse: بيفعّل التحديق
-             fuse-timeout: الوقت بالمللي ثانية قبل ما يشتغل (2 ثانية)
-             raycaster: معطل في البداية ويتفعّل بعد إغلاق شاشة البداية -->
         <a-cursor
           id="cursor"
           fuse="true"
@@ -274,14 +276,13 @@
     <script>
 
       // ===== بتقفل شاشة البداية وتفعّل الكيرسور في نفس الوقت =====
-      // السبب: عشان الكيرسور ما يشتغلش وشاشة البداية لسه شغالة
       function closeSplash() {
         document.getElementById('splash').style.display = 'none';
         document.getElementById('cursor')
           .setAttribute('raycaster', 'objects: .planet; enabled: true');
       }
 
-      // ===== بننتظر لحد ما المشهد يتحمل بالكامل قبل ما نضيف الأحداث =====
+      // ===== بننتظر لحد ما المشهد يتحمل بالكامل =====
       document.querySelector('a-scene').addEventListener('loaded', function () {
 
         const cursor   = document.getElementById('cursor');
@@ -289,9 +290,53 @@
         const infoName = document.getElementById('info-name');
         const infoText = document.getElementById('info-text');
         const gazeRing = document.getElementById('gaze-ring');
+        const cam      = document.getElementById('cam');
 
-        // متغير عشان نقدر نلغي العداد لو المستخدم بص بعيد قبل الثانيتين
         let gazeTimer = null;
+
+        // ===== جويستيك الموبايل =====
+        // بنعمل الجويستيك بس لو الشاشة صغيرة (موبايل)
+        if (window.innerWidth <= 768) {
+          const joystick = nipplejs.create({
+            zone: document.getElementById('joystick-zone'),
+            mode: 'static',        // ثابت في مكانه
+            position: { left: '50%', top: '50%' },
+            color: 'rgba(255, 233, 153, 0.6)',
+            size: 100
+          });
+
+          let moveDir = { x: 0, y: 0 }; // اتجاه الحركة الحالي
+
+          // لما تحرك الجويستيك — سجل الاتجاه
+          joystick.on('move', function (e, data) {
+            const angle  = data.angle.radian;   // الزاوية بالراديان
+            const force  = Math.min(data.force, 2) / 2; // القوة من 0 لـ 1
+            moveDir.x = Math.cos(angle) * force;
+            moveDir.y = Math.sin(angle) * force;
+          });
+
+          // لما ترفع اصبعك — وقف الحركة
+          joystick.on('end', function () {
+            moveDir.x = 0;
+            moveDir.y = 0;
+          });
+
+          // حلقة الحركة — بتشتغل كل frame
+          const speed = 0.08;
+          function moveLoop() {
+            if (moveDir.x !== 0 || moveDir.y !== 0) {
+              const pos      = cam.getAttribute('position');
+              const rotation = cam.getAttribute('rotation');
+              // تحويل الاتجاه بناءً على اتجاه الكاميرا
+              const yaw = THREE.MathUtils.degToRad(rotation.y);
+              pos.x += (Math.cos(yaw) * moveDir.x + Math.sin(yaw) * moveDir.y) * speed;
+              pos.z += (Math.sin(yaw) * moveDir.x - Math.cos(yaw) * moveDir.y) * speed * -1;
+              cam.setAttribute('position', pos);
+            }
+            requestAnimationFrame(moveLoop);
+          }
+          moveLoop();
+        }
 
         // ===== لما الكيرسور يبدأ يحدق في كوكب =====
         cursor.addEventListener('fusing', function (e) {
@@ -312,7 +357,7 @@
         });
 
         // ===== لما تبص بعيد عن الكوكب — اخفي كل حاجة وامسح العداد =====
-        cursor.addEventListener('mouseleave', function (e) {
+        cursor.addEventListener('mouseleave', function () {
           clearTimeout(gazeTimer);
           infoBox.style.display  = 'none';
           gazeRing.style.display = 'none';
