@@ -2,6 +2,7 @@
   <head>
     <meta charset="UTF-8">
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/mrturck/aframe-joystick/master/joystick.min.js"></script>
     <style>
       #info-box {
         display: none;
@@ -113,7 +114,11 @@
     <!-- Gaze spinner -->
     <div id="gaze-ring"></div>
 
-    <a-scene>
+    <!-- 
+      The joystick attribute is added dynamically by JS only when on mobile.
+      vr-mode-ui is disabled on mobile too (recommended with joystick).
+    -->
+    <a-scene id="main-scene">
 
       <a-assets>
         <img id="tex-stars"   src="images/2k_stars.jpg">
@@ -149,7 +154,7 @@
         radius="0.08"
         data-name="عطارد"
         data-info="اقرب كوكب للشمس ويبعد عنها 58 مليون كم. يومه اطول من سنته. لا يملك غلافا جويا تقريبا."
-        position="4.9 1.4 -12";>
+        position="4.9 1.4 -12">
       </a-sphere>
 
       <!-- Venus -->
@@ -237,8 +242,8 @@
                    loop: true; dir: alternate; dur: 4200; easing: easeInOutSine">
       </a-sphere>
 
-      <!-- Camera -->
-      <a-camera id="cam" position="0 1.6 0" wasd-controls look-controls>
+      <!-- Camera — id="camera" is required by the joystick component -->
+      <a-entity id="camera" camera position="0 1.6 0" wasd-controls look-controls>
         <a-cursor
           id="cursor"
           fuse="true"
@@ -248,11 +253,23 @@
           material="color: #ffe999; shader: flat; opacity: 0.8"
           raycaster="objects: .planet; enabled: false">
         </a-cursor>
-      </a-camera>
+      </a-entity>
 
     </a-scene>
 
     <script>
+
+      // ===== تفعيل الجويستيك فقط على الموبايل =====
+      (function () {
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+                      || (navigator.maxTouchPoints > 1 && !/Macintosh/i.test(navigator.userAgent));
+
+        if (isMobile) {
+          const scene = document.getElementById('main-scene');
+          scene.setAttribute('joystick', '');
+          scene.setAttribute('vr-mode-ui', 'enabled: false');
+        }
+      })();
 
       // ===== بتقفل شاشة البداية وتفعّل الكيرسور في نفس الوقت =====
       function closeSplash() {
@@ -269,20 +286,16 @@
         const infoName = document.getElementById('info-name');
         const infoText = document.getElementById('info-text');
         const gazeRing = document.getElementById('gaze-ring');
-        const cam      = document.getElementById('cam');
 
         let gazeTimer = null;
 
         // ===== لما الكيرسور يبدأ يحدق في كوكب =====
         cursor.addEventListener('fusing', function (e) {
           const target = e.detail.intersectedEl;
-          // تأكد إن اللي بتحدق فيه كوكب فعلاً
           if (!target || !target.classList.contains('planet')) return;
 
-          // اعرض دايرة التحديق الدوارة
           gazeRing.style.display = 'block';
 
-          // بعد ثانيتين اعرض المعلومات
           gazeTimer = setTimeout(function () {
             gazeRing.style.display = 'none';
             infoName.textContent = target.dataset.name || '';
@@ -291,14 +304,14 @@
           }, 2000);
         });
 
-        // ===== لما تبص بعيد عن الكوكب — اخفي كل حاجة وامسح العداد =====
+        // ===== لما تبص بعيد عن الكوكب =====
         cursor.addEventListener('mouseleave', function () {
           clearTimeout(gazeTimer);
           infoBox.style.display  = 'none';
           gazeRing.style.display = 'none';
         });
 
-        // ===== لو المستخدم ضغط كليك بدل التحديق — اعرض المعلومات فوراً =====
+        // ===== لو المستخدم ضغط كليك بدل التحديق =====
         cursor.addEventListener('click', function (e) {
           const target = e.detail.intersectedEl;
           if (!target || !target.classList.contains('planet')) return;
@@ -312,3 +325,4 @@
 
   </body>
 </html>
+
